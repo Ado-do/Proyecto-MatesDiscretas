@@ -1,3 +1,5 @@
+#include "ConceGraph.hpp"
+
 #include <iostream>
 
 /*
@@ -8,7 +10,17 @@
     - Los nodos se guardan en un mapa, donde la llave es el nombre de la interseccion y el valor es el nodo
 */
 
-int main() {
-    std::cout << "Hello, World!" << " UwU" << std::endl;
+// Compilar: g++ -std=c++11 -o main source/main.cpp source/ConceGraph.cpp
+
+int main(int argc, char *argv[]) {
+    ConceGraph graph;
+
+    // Imprimir grafo
+    graph.print();
+
+    // Imprimir linea de argumentos
+    // std::cout << "Argumentos: ";
+    // for (int i = 0; i < argc; i++) std::cout << argv[i] << " ";
+
     return 0;
 }

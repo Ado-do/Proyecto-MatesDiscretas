@@ -1,4 +1,4 @@
-#pragma once;
+#pragma once
 
 #include <vector>
 #include <string>
@@ -11,11 +11,11 @@ struct Edge {
     Edge(int v1, int v2, int dist) : v1_id(v1), v2_id(v2), distance(dist) {}
 };
 
-//* Vertice (Interseccion de calles)
+//* Vertice (Intersección de calles)
 struct Vertex {
     int id; // Identificador del vertice (interseccion)
     std::string label; // Etiqueta del vertice (nombre de la interseccion)
-    std::vector<Edge*> incidentEdges; // Aristas incidentes al vertice (calles que conectan a la interseccion)
+    std::vector<Edge*> edges; // Aristas incidentes al vertice (calles que conectan a la interseccion)
     Vertex(int id, std::string label) : id(id), label(label) {}
 };
 
