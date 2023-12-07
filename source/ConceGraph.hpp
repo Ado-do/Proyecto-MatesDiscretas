@@ -4,33 +4,54 @@
 #include <string>
 #include <map>
 
+
 //* Arista (Calle)
-struct Edge {
-    int v1_id, v2_id; // Identificadores de los vertices (intersecciones) que conecta la arista (calle)
-    int distance; // Distancia entre los dos puntos (metros)
-    Edge(int v1, int v2, int dist) : v1_id(v1), v2_id(v2), distance(dist) {}
+class Edge {
+    std::string label; // Nombre de la calle (Rengo)
+    std::pair<int, int> ids; // Intersecciones de la calle (Rengo/Cochrane)
+    std::pair<int, int> range; // Range de la calle (Rengo 100 - 200)
+    int weight; // Distancia entre intersecciones
+public:
+    Edge(std::string label, size_t v1, size_t v2, int r1, int r2, int weight)
+        : label(label), ids(std::make_pair(v1, v2)), range(std::make_pair(r1, r2)), weight(weight) {}
+
+    std::string getLabel() const { return label; }
+    size_t getSource() const { return ids.first; }
+    size_t getDestination() const { return ids.second; }
+    int getWeight() const { return weight; }
+    std::pair<int, int> getRange() const { return range; }
 };
 
 //* Vertice (Intersección de calles)
-struct Vertex {
-    int id; // Identificador del vertice (interseccion)
-    std::string label; // Etiqueta del vertice (nombre de la interseccion)
-    std::vector<Edge*> edges; // Aristas incidentes al vertice (calles que conectan a la interseccion)
-    Vertex(int id, std::string label) : id(id), label(label) {}
+class Vertex {
+    size_t id; // Indice del vertice
+    std::string label; // Nombre de la intersección (Rengo/Cochrane)
+    std::vector<Edge*> edges;
+public:
+    Vertex(size_t id, std::string label) : id(id), label(label) {}
+
+    std::string getLabel() const { return label; }
+    std::vector<Edge*> getEdges() const { return edges; }
+    void addEdge(Edge* edge) { edges.push_back(edge); }
+    size_t getId() const { return id; }
 };
 
-//* Grafo
+//* Grafo (Mapa de Concepción)
 class ConceGraph {
-    std::map<int, Vertex*> verticesMap; // Contenedor de vertices (mapa de intersecciones)
-    // std::vector<Edge*> edgesList; // Vector de aristas (calles)
-
-    void addVertex(int id, std::string label);
-    void addEdge(int v1_id, int v2_id, int dist);
+    std::vector<Vertex*> vertices;
+    
+    void addVertex(size_t id, const std::string& label);
+    void addEdge(const std::string& label, size_t v1, size_t v2, int r1, int r2, int weight);
+    size_t findStartByAddress(const std::string& label);
+    size_t findEndByAddress(const std::string& label);
+    std::vector<std::string> dijkstra(size_t start, size_t end);
+    std::string modStr(const std::string& str);
+    bool isSubStr(const std::string& str1, const std::string& str2);
 
 public:
     ConceGraph();
     ~ConceGraph();
-
+    
+    std::vector<std::string> getShortestPath(const std::string& start, const std::string& end, const std::string& third = "");
     void print();
-    std::vector<int> getShortestPath(std::string start, std::string end); // Dijkstra
 };
