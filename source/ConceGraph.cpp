@@ -4,145 +4,82 @@
 #include <iomanip>
 #include <cmath>
 #include <queue>
-#include <array>
 #include <algorithm>
 
 using std::string, std::cout, std::endl, std::setw, std::vector, std::pair, std::array;
 
-//* METODOS PUBLICOS *//
 ConceGraph::ConceGraph() {
-    array<string, 8> horizontales = {"Av. los Carrera","Maipu","Freire","Barros Arana","O'Higgins","San Martin","Cochrane","Av. Chacabuco"};
-    array<string, 14> verticales = {"Arturo Prat","Serrano","Obispo Hipolito Salas","Angol","Lincoyan","Rengo","Caupolican","Anibal Pinto","Colo Colo","Castellon","Tucapel","Orompello","Ongolmo","Paicavi"};
-
-    int it = 0, contDiagonal = 0;
+    int vertexIndex = 0;
     for (size_t i = 0; i < horizontales.size(); i++) {
-        for (size_t j = 0; j < verticales.size(); j++, it++) {
-            //* Agregar vertices
-            addVertex(it, horizontales[i] + "/" + verticales[j]);
-
-            //* Agregar aristas
-            // Caso general calles horizontales (0 -> 1300)
-            bool horizontalPar = (i % 2 == 0);
-
-            bool rightToLeft = (horizontalPar && j != 0);
-            if (rightToLeft) {
-                size_t v1 = (it == 97) ? it-1 : it;
-                size_t v2 = (it == 97) ? it : it-1;
-                int r1 = 1 + (100 * (j-1)), r2 = r1 + 99;
-                addEdge(horizontales[i], v1, v2, r1, r2, 100);
-            }
-
-            bool peatonal1 = (it == 49 || it == 50); // Pasos peatonales
-            bool leftToRight = (!horizontalPar && j != 13) && !peatonal1;
-            if (leftToRight) {
-                int r1 = 1 + (100 * j), r2 = r1 + 99;
-                addEdge(horizontales[i], it, it+1, r1, r2, 100);
-            }
-
-            // Caso general calles verticales (800 -> 100)
-            bool verticalPar = (j % 2 == 0);
-
-            bool bottomToTop = (verticalPar && i != 0) ;
-            if (bottomToTop) {
-                int r1 = 800 - (100 * i), r2 = r1 - 99;
-                addEdge(verticales[j], it, it-14, r1, r2, 100);
-            }
-
-            bool peatonal2 = (it == 21 || it == 35); // Pasos peatonales
-            bool topToBottom = (!verticalPar && i != 7) && !peatonal2;
-            if (topToBottom) {
-                int r1 = 800 - (100 * (i-1)), r2 = r1 - 99;
-                addEdge(verticales[j], it, it+14, r1, r2, 100);
-            }
-
-            // Caso Diagonal (1300 -> 1100)
-            bool diagonal = (it == 81 || it == 96 || it == 111);
-            int diagonalDist = 100 * sqrt(2);
-            if (diagonal) {
-                addEdge("Diagonal", it, it-15, 1001 + (100 * contDiagonal), 1100 + (100 * contDiagonal), diagonalDist);
-                if (it == 66) addEdge("Diagonal", it+15, it, 1001 + (100 * contDiagonal), 1100 + (100 * contDiagonal), diagonalDist);
-                contDiagonal++;
-            }
-
-            // Casos doble sentido
-            bool losCarrera = (i == 0 && j != 13);
-            bool chacabuco = (i == 7 && j != 0);
-            bool paicavi = (i != 0 && i <= 4 && j == 13);
-            if (losCarrera) {
-                addEdge(horizontales[i], it, it+1, 1 + (100 * j), 100 + (100 * j), 100);
-            }
-            if (chacabuco) {
-                addEdge(horizontales[i], it, it-1, 1 + (100 * (j-1)), 100 + (100 * (j-1)), 100);
-            }
-            if (paicavi) {
-                addEdge(verticales[j], it, it-14, 800 - (100 * (i-1)), 701 - (100 * (i-1)), 100);
-            }
-            if (diagonal && it != 111) {
-                addEdge("Diagonal", it, it+15, 1001 + (100 * contDiagonal), 1100 + (100 * contDiagonal), diagonalDist);
-            }
+        for (size_t j = 0; j < verticales.size(); j++) {
+            addVertices(i, j, vertexIndex);
+            addEdges(i, j, vertexIndex);
+            vertexIndex++;
         }
     }
 }
 
-ConceGraph::~ConceGraph() {
-    for (auto vertex : vertices) {
-        for (auto edge : vertex->getEdges()) 
-            delete edge;
-        delete vertex;
+void ConceGraph::addVertices(size_t i, size_t j, int vertexIndex) {
+    string intersection = horizontales[i] + "/" + verticales[j];
+
+    int v = vertexIndex;
+    bool isDiagonal = (v == 66 || v == 81 || v == 96 || v == 111);
+    if (isDiagonal) intersection += "/Diagonal";
+
+    addVertex(vertexIndex, intersection);
+}
+
+void ConceGraph::addEdges(size_t i, size_t j, int vertexIndex) {
+    bool isEvenHorizontal = (i % 2 == 0);
+    bool isEvenVertical = (j % 2 == 0);
+    bool isDiagonal = (vertexIndex == 81 || vertexIndex == 96 || vertexIndex == 111);
+    bool isHorizontalPedestrian = (vertexIndex == 49 || vertexIndex == 50);
+    bool isVerticalPedestrian = (vertexIndex == 21 || vertexIndex == 35);
+
+    // Casos generales
+    if (isEvenHorizontal) {
+        addEdgeForEvenHorizontal(vertexIndex, horizontales[i], j);
+    }
+    if (!isEvenHorizontal && !isHorizontalPedestrian) {
+        addEdgeForOddHorizontal(vertexIndex, horizontales[i], j);
+    }
+
+    if (isEvenVertical) {
+        addEdgeForEvenVertical(vertexIndex, verticales[j], i);
+    }
+    if (!isEvenVertical && !isVerticalPedestrian) {
+        addEdgeForOddVertical(vertexIndex, verticales[j], i);
+    }
+
+    if (isDiagonal) {
+        int diagonalDist = 100 * sqrt(2);
+        int r = 1001 + (100 * (i-5));
+        addEdge("Diagonal", vertexIndex, vertexIndex-15, r, r+99, diagonalDist);
+    }
+
+    // Casos doble sentido
+    bool losCarrera = (i == 0 && j != 13);
+    bool chacabuco = (i == 7 && j != 0);
+    bool paicavi = (i != 0 && i <= 4 && j == 13);
+    if (losCarrera) {
+        int r = 1 + (100 * j);
+        addEdge(horizontales[i], vertexIndex, vertexIndex+1, r, r+99, 100);
+    }
+    if (chacabuco) {
+        int r = 1 + (100 * (j-1));
+        addEdge(horizontales[i], vertexIndex, vertexIndex-1, r, r+99, 100);
+    }
+    if (paicavi) {
+        int r = 800 - (100 * (i-1));
+        addEdge(verticales[j], vertexIndex, vertexIndex-14, r, r-99, 100);
+    }
+    if (isDiagonal && vertexIndex != 111) {
+        int diagonalDist = 100 * sqrt(2);
+        int r = 1101 + (100 * (i-5));
+        addEdge("Diagonal", vertexIndex, vertexIndex+15, r, r+99, diagonalDist);
     }
 }
 
-// Camino mas corto entre dos intersecciones, pasando por una posible tercera
-vector<string> ConceGraph::getShortestPath(const string& start, const string& end, const string& third) {
-    vector<string> path;
-    path.push_back(start);
-    
-    vector<string> dijkstraPath;
-    if (third != "") {
-        cout << "* Buscando camino mas corto entre " << start << " y " << end << ", pasando por " << third << ":" << endl; // DEBUG
-        size_t v1 = findStartByAddress(start), v2 = findStartByAddress(third), v3 = findEndByAddress(end);
-        if (v1 == INT_MAX || v2 == INT_MAX || v3 == INT_MAX) {
-            path.push_back("No se encontro camino");
-            return path;
-        }
-        dijkstraPath = dijkstra(findStartByAddress(start), findStartByAddress(third));
-        path.insert(path.end(), dijkstraPath.begin(), dijkstraPath.end());
-        path.push_back(third);
-        dijkstraPath = dijkstra(findStartByAddress(third), findEndByAddress(end));
-        path.insert(path.end(), dijkstraPath.begin(), dijkstraPath.end());
-    } else {
-        cout << "* Buscando camino mas corto entre " << start << " y " << end << ":" << endl; // DEBUG
-        size_t v1 = findStartByAddress(start), v2 = findEndByAddress(end);
-        if (v1 == INT_MAX || v2 == INT_MAX) {
-            path.push_back("No se encontro camino");
-            return path;
-        }
-        dijkstraPath = dijkstra(v1, v2);
-        path.insert(path.end(), dijkstraPath.begin(), dijkstraPath.end());
-        path.push_back(end);
-    }
-    cout << endl; // DEBUG
-
-    return path;
-}
-
-void ConceGraph::print() {
-    cout << "* Grafo del centro de Concepcion:" << endl;
-    for (auto vertex : vertices) {
-        string l = vertex->getLabel();
-        cout << l << setw(40 - l.length()) << " (" << vertex->getId() << ") -> ";
-
-        for (auto edge : vertex->getEdges()) {
-            auto r = edge->getRange();
-            cout << edge->getLabel() << '[' << r.first << ',' << r.second << ']' << " ";
-            // cout << edge->getDestination() << " ";
-        }
-        cout << endl;
-    }
-    cout << endl;
-}
-
-//* METODOS PRIVADOS *//
 void ConceGraph::addVertex(size_t id, const string& label) {
     Vertex* vertex = new Vertex(id, label);
     vertices.push_back(vertex);
@@ -152,6 +89,57 @@ void ConceGraph::addEdge(const string& label, size_t v1, size_t v2, int r1, int 
     Edge* edge = new Edge(label, v1, v2, r1, r2, weight);
     vertices[v1]->addEdge(edge);
 }
+
+void ConceGraph::print() {
+    cout << "* Grafo del centro de Concepcion:" << endl;
+    for (auto vertex : vertices) {
+        string l = vertex->getLabel();
+        cout << l << setw(40 - l.length()) << " (" << vertex->getId() << ") -> ";
+        for (auto edge : vertex->getEdges()) {
+            auto r = edge->getRange();
+            cout << edge->getDestination() << '[' << r.first << ',' << r.second << ']' << " ";
+        }
+        cout << endl;
+    }
+    cout << endl;
+}
+
+// Camino mas corto entre dos intersecciones, pasando por una posible tercera
+vector<string> ConceGraph::getShortestPath(const string& start, const string& end, const string& third) {
+    vector<string> path;
+    path.push_back(start);
+    
+    vector<string> dijkstraPath;
+    if (third != "") {
+        cout << "* Buscando camino mas corto entre " << start << " y " << end << ", pasando por " << third << ":" << endl; //! DEBUG
+        size_t v1 = findStartByAddress(start), v2 = findStartByAddress(third), v3 = findEndByAddress(end);
+        if (v1 == INT_MAX || v2 == INT_MAX || v3 == INT_MAX) {
+            path.push_back("No se encontro camino");
+            return path;
+        }
+        dijkstraPath = dijkstra(v1, v2);
+        path.insert(path.end(), dijkstraPath.begin(), dijkstraPath.end());
+        path.push_back(third);
+        dijkstraPath = dijkstra(v2, v3);
+        path.insert(path.end(), dijkstraPath.begin(), dijkstraPath.end());
+        path.push_back(end);
+
+    } else {
+        cout << "* Buscando camino mas corto entre " << start << " y " << end << ":" << endl; //! DEBUG
+        size_t v1 = findStartByAddress(start), v2 = findEndByAddress(end);
+        if (v1 == INT_MAX || v2 == INT_MAX) {
+            path.push_back("No se encontro camino");
+            return path;
+        }
+        dijkstraPath = dijkstra(v1, v2);
+        path.insert(path.end(), dijkstraPath.begin(), dijkstraPath.end());
+        path.push_back(end);
+    }
+    cout << endl; //! DEBUG
+
+    return path;
+}
+
 
 // ? Caso doble sentidoXD
 size_t ConceGraph::findStartByAddress(const string& address) {
@@ -175,7 +163,7 @@ size_t ConceGraph::findStartByAddress(const string& address) {
                     int major = (range.first > range.second) ? range.first : range.second;
                     if (number >= minor && number <= major) {
                         cout << "Encontrado punto de partida: " << intersection << " (" << vertex->getId() << ")" << endl; // DEBUG
-                        return edge->getSource();
+                        return edge->getDestination();
                     }
                 }
             }
@@ -207,7 +195,7 @@ size_t ConceGraph::findEndByAddress(const string& address) {
                     int major = (range.first > range.second) ? range.first : range.second;
                     if (number >= minor && number <= major) {
                         cout << "Encontrado punto de llegada: " << intersection << " (" << vertex->getId() << ")" << endl; // DEBUG
-                        return edge->getDestination();
+                        return edge->getSource();
                     }
                 }
             }
@@ -216,11 +204,6 @@ size_t ConceGraph::findEndByAddress(const string& address) {
 
     cout << "No se encontro punto de llegada" << endl; // DEBUG
     return INT_MAX;
-}
-
-bool ConceGraph::isSubStr(const string& str1, const string& str2) {
-    bool isSubStr = (modStr(str1).find(modStr(str2)) != string::npos);
-    return isSubStr;
 }
 
 vector<string> ConceGraph::dijkstra(size_t start, size_t end) {
@@ -249,20 +232,55 @@ vector<string> ConceGraph::dijkstra(size_t start, size_t end) {
 
     vector<string> path;
     for (size_t i = end; i != size_t(-1); i = previous[i]) {
-        path.push_back(vertices[i]->getLabel());
+        // path.push_back(vertices[i]->getLabel());
+        path.push_back(std::to_string(i));
     }
     std::reverse(path.begin(), path.end());
 
-    // cout << "Distancia total: " << distances[end] << " metros" << endl;
+    // cout << "Distancia total aprox.: " << distances[end] << " metros" << endl;
     // for (size_t i = 0; i < path.size(); i++) {
-    //     cout << path[i];
-    //     if (i != path.size()-1) cout << " -> ";
+        // cout << path[i];
+        // if (i != path.size()-1) cout << " -> ";
     // }
 
     return path;
 }
 
-// Modificar string ()
+void ConceGraph::addEdgeForEvenHorizontal(size_t vertexIndex, const string& streetName, size_t j) {
+    if (j != 0) {
+        int v1 = (vertexIndex == 97) ? vertexIndex-1 : vertexIndex;
+        int v2 = (vertexIndex == 97) ? vertexIndex : vertexIndex-1;
+        int r = 1 + (100 * (j-1));
+        addEdge(streetName, v1, v2, r, r+99, 100);
+    }
+}
+void ConceGraph::addEdgeForOddHorizontal(size_t vertexIndex, const string& streetName, size_t j) {
+    if (j != 13) {
+        int r = 1 + (100 * j);
+        addEdge(streetName, vertexIndex, vertexIndex+1, r, r+99, 100);
+    }
+}
+void ConceGraph::addEdgeForEvenVertical(size_t vertexIndex, const string& streetName, size_t i) {
+    if (i != 0) {
+        int r = 800 - (100 * (i-1));
+        addEdge(streetName, vertexIndex, vertexIndex-14, r, r-99, 100);
+    }
+}
+void ConceGraph::addEdgeForOddVertical(size_t vertexIndex, const string& streetName, size_t i) {
+    if (i != 7) {
+        int r = 800 - (100 * i);
+        addEdge(streetName, vertexIndex, vertexIndex+14, r, r-99, 100);
+    }
+}
+ConceGraph::~ConceGraph() {
+    for (auto vertex : vertices) {
+        for (auto edge : vertex->getEdges()) 
+            delete edge;
+        delete vertex;
+    }
+}
+
+// Modificar string a un formato mas facil de comparar
 string ConceGraph::modStr(const string& str) {
     vector<char> chars;
     for (char c : str) {
@@ -270,4 +288,10 @@ string ConceGraph::modStr(const string& str) {
     }
     string newStr(chars.begin(), chars.end());
     return newStr;
+}
+
+// Verificar si un string es substring de otro
+bool ConceGraph::isSubStr(const string& str1, const string& str2) {
+    bool isSubStr = (modStr(str1).find(modStr(str2)) != string::npos);
+    return isSubStr;
 }

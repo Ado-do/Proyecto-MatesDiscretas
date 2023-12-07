@@ -1,6 +1,7 @@
 #pragma once
 
 #include <vector>
+#include <array>
 #include <string>
 #include <map>
 
@@ -9,7 +10,7 @@
 class Edge {
     std::string label; // Nombre de la calle (Rengo)
     std::pair<int, int> ids; // Intersecciones de la calle (Rengo/Cochrane)
-    std::pair<int, int> range; // Range de la calle (Rengo 100 - 200)
+    std::pair<int, int> range; // Rango de la calle (Rengo 100 - 200)
     int weight; // Distancia entre intersecciones
 public:
     Edge(std::string label, size_t v1, size_t v2, int r1, int r2, int weight)
@@ -26,7 +27,7 @@ public:
 class Vertex {
     size_t id; // Indice del vertice
     std::string label; // Nombre de la intersección (Rengo/Cochrane)
-    std::vector<Edge*> edges;
+    std::vector<Edge*> edges; // Arcos que salen del vertice
 public:
     Vertex(size_t id, std::string label) : id(id), label(label) {}
 
@@ -38,13 +39,24 @@ public:
 
 //* Grafo (Mapa de Concepción)
 class ConceGraph {
+    const std::array<std::string, 8> horizontales = {"Av. los Carrera","Maipu","Freire","Barros Arana","O'Higgins","San Martin","Cochrane","Av. Chacabuco"};
+    const std::array<std::string, 14> verticales = {"Arturo Prat","Serrano","Obispo Hipolito Salas","Angol","Lincoyan","Rengo","Caupolican","Anibal Pinto","Colo Colo","Castellon","Tucapel","Orompello","Ongolmo","Paicavi"};
+
     std::vector<Vertex*> vertices;
     
-    void addVertex(size_t id, const std::string& label);
+    void addVertices(size_t i, size_t j, int vertexIndex);
+    void addEdges(size_t i, size_t j, int vertexIndex);
+    void addEdgeForEvenHorizontal(size_t vertexIndex, const std::string& streetName, size_t j);
+    void addEdgeForOddHorizontal(size_t vertexIndex, const std::string& streetName, size_t j);
+    void addEdgeForEvenVertical(size_t vertexIndex, const std::string& streetName, size_t i);
+    void addEdgeForOddVertical(size_t vertexIndex, const std::string& streetName, size_t i);
     void addEdge(const std::string& label, size_t v1, size_t v2, int r1, int r2, int weight);
+    void addVertex(size_t id, const std::string& label);
+
+    std::vector<std::string> dijkstra(size_t start, size_t end);
     size_t findStartByAddress(const std::string& label);
     size_t findEndByAddress(const std::string& label);
-    std::vector<std::string> dijkstra(size_t start, size_t end);
+
     std::string modStr(const std::string& str);
     bool isSubStr(const std::string& str1, const std::string& str2);
 
