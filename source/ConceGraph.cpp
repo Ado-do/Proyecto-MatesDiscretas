@@ -231,7 +231,7 @@ vector<string> ConceGraph::dijkstra(size_t start, size_t end) {
     }
 
     vector<string> path;
-    for (size_t i = end; i != size_t(-1); i = previous[i]) {
+    for (int i = end; i != -1; i = previous[i]) {
         // path.push_back(vertices[i]->getLabel());
         path.push_back(std::to_string(i));
     }
