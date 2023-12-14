@@ -5,8 +5,14 @@
 #include <cmath>
 #include <queue>
 #include <algorithm>
+#include <climits>
 
-using std::string, std::cout, std::endl, std::setw, std::vector, std::pair, std::array;
+using std::cout;
+using std::endl;
+using std::setw;
+using std::string;
+using std::vector;
+using std::pair;
 
 ConceGraph::ConceGraph() {
     int vertexIndex = 0;
@@ -144,7 +150,7 @@ vector<string> ConceGraph::getShortestPath(const string& start, const string& en
 // ? Caso doble sentidoXD
 size_t ConceGraph::findStartByAddress(const string& address) {
     cout << "Buscando punto de partida desde " << address << endl; //! DEBUG
-    int number;
+    int number = -1;
     for (size_t i = 0; i < address.length(); i++) {
         if (isdigit(address[i])) {
             number = stoi(address.substr(i, address.length()));
@@ -176,7 +182,7 @@ size_t ConceGraph::findStartByAddress(const string& address) {
 
 size_t ConceGraph::findEndByAddress(const string& address) {
     cout << "Buscando punto de llegada desde " << address << endl; //! DEBUG
-    int number;
+    int number = -1;
     for (size_t i = 0; i < address.length(); i++) {
         if (isdigit(address[i])) {
             number = stoi(address.substr(i, address.length()));

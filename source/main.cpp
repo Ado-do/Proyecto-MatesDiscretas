@@ -2,7 +2,10 @@
 
 #include <iostream>
 
-using std::string, std::cout, std::endl, std::vector;
+using std::vector;
+using std::string;
+using std::cout;
+using std::endl;
 
 //* Compilar con: g++ -Wall -o concegraph.exe source/main.cpp source/ConceGraph.cpp
 
